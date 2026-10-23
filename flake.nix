@@ -30,7 +30,7 @@
       packages = forAllSystems (pkgs: system:
         let
           target = targets.${system};
-          crawlberg = pkgs.stdenv.mkDerivation {
+          crawlbergBin = pkgs.stdenv.mkDerivation {
             pname = "crawlberg";
             version = "1.12.0";
 
@@ -63,18 +63,37 @@
               platforms = systems;
             };
           };
+          crawlberg = if pkgs.stdenv.hostPlatform.isLinux then
+            pkgs.buildFHSEnv {
+              pname = "crawlberg";
+              version = "1.12.0";
+              executableName = "crawlberg";
+              targetPkgs = _: [ crawlbergBin ];
+              runScript = "${crawlbergBin}/bin/crawlberg";
+              meta = crawlbergBin.meta;
+            }
+          else crawlbergBin;
         in {
           default = crawlberg;
           crawlberg = crawlberg;
         });
 
-      checks = forAllSystems (pkgs: system: {
-        cli-help = pkgs.runCommand "crawlberg-cli-help" {
-          nativeBuildInputs = [ self.packages.${system}.default ];
-        } ''
-          crawlberg --help > "$out"
-          grep -q "crawlberg" "$out"
-        '';
-      });
+      checks = forAllSystems (pkgs: system:
+        let
+          crawlberg = self.packages.${system}.crawlberg;
+        in {
+          cli-help = pkgs.runCommand "crawlberg-cli-help" {
+            nativeBuildInputs = [ crawlberg ];
+          } ''
+            crawlberg --help > "$out"
+            grep -q "crawlberg" "$out"
+          '';
+        } // pkgs.lib.optionalAttrs pkgs.stdenv.hostPlatform.isLinux {
+          browser-guardian-runtime = pkgs.runCommand "crawlberg-browser-guardian-runtime" { } ''
+            test -x ${crawlberg.fhsenv}/usr/bin/sh
+            test -x ${crawlberg.fhsenv}/usr/bin/sleep
+            touch "$out"
+          '';
+        });
     };
 }
