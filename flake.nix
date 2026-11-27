@@ -1,6 +1,21 @@
 {
   description = "Nix package for the Crawlberg web crawler CLI";
 
+  nixConfig = {
+    extra-substituters = [
+      "https://cache.nixos.org"
+      "https://nix-community.cachix.org"
+      "https://rogernavelsaker.cachix.org"
+      "https://nacosolutions.cachix.org"
+    ];
+    extra-trusted-public-keys = [
+      "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
+      "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+      "rogernavelsaker.cachix.org-1:n1DtzMNhA9Rz4Kg3xlXOi/KceULu8VrMbs9WXyMFQNQ="
+      "nacosolutions.cachix.org-1:JzCiW2CLcuLXtwOVAg3SlSK/kpqWbfSFEVenyKVUlug="
+    ];
+  };
+
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = { self, nixpkgs, ... }:
@@ -13,15 +28,15 @@
       targets = {
         "x86_64-linux" = {
           name = "x86_64-unknown-linux-gnu";
-          hash = "sha256-Ylezi50BJfM5U6A26e9K5ZrFUdhRtlwhYtBuNRsDUac=";
+          hash = "sha256-wJb7QoUsNFTOEcnzSw1MgEzIFOudUXrdChHrzzD4vhI=";
         };
         "aarch64-linux" = {
           name = "aarch64-unknown-linux-gnu";
-          hash = "sha256-6maR1MtN4+s6BQbPtKYdwcjHwN8IeIg5bA/+m9JkNxM=";
+          hash = "sha256-FN37htu/yxnDSbaCeda2JwDSn2O1shdrfale/PPBOHg=";
         };
         "aarch64-darwin" = {
           name = "aarch64-apple-darwin";
-          hash = "sha256-50mKRFG9Hdh6xPD7SLDZbRCydUKYkvof+Ok0iiXJ2ZY=";
+          hash = "sha256-dZJkKSGJStEGfWzQBi27DQzc6glvL+TZoOy3N/aApFE=";
         };
       };
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system:
@@ -32,10 +47,10 @@
           target = targets.${system};
           crawlbergBin = pkgs.stdenv.mkDerivation {
             pname = "crawlberg";
-            version = "1.12.0";
+            version = "1.13.5";
 
             src = pkgs.fetchurl {
-              url = "https://github.com/xberg-io/crawlberg/releases/download/v1.12.0/crawlberg-cli-${target.name}.tar.gz";
+              url = "https://github.com/xberg-io/crawlberg/releases/download/v1.13.5/crawlberg-cli-${target.name}.tar.gz";
               inherit (target) hash;
             };
 
@@ -66,7 +81,7 @@
           crawlberg = if pkgs.stdenv.hostPlatform.isLinux then
             pkgs.buildFHSEnv {
               pname = "crawlberg";
-              version = "1.12.0";
+              version = "1.13.5";
               executableName = "crawlberg";
               targetPkgs = _: [ crawlbergBin ];
               runScript = "${crawlbergBin}/bin/crawlberg";
@@ -76,14 +91,16 @@
         in {
           default = crawlberg;
           crawlberg = crawlberg;
+          crawlberg-bin = crawlbergBin;
         });
 
       checks = forAllSystems (pkgs: system:
         let
           crawlberg = self.packages.${system}.crawlberg;
+          crawlbergBin = self.packages.${system}.crawlberg-bin;
         in {
           cli-help = pkgs.runCommand "crawlberg-cli-help" {
-            nativeBuildInputs = [ crawlberg ];
+            nativeBuildInputs = [ crawlbergBin ];
           } ''
             crawlberg --help > "$out"
             grep -q "crawlberg" "$out"
