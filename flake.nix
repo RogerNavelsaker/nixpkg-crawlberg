@@ -28,15 +28,15 @@
       targets = {
         "x86_64-linux" = {
           name = "x86_64-unknown-linux-gnu";
-          hash = "sha256-wJb7QoUsNFTOEcnzSw1MgEzIFOudUXrdChHrzzD4vhI=";
+          hash = "sha256-YDCaWO2y30zNkT6PXLlRFSE22OJMSrds6vkUoYqRG9o=";
         };
         "aarch64-linux" = {
           name = "aarch64-unknown-linux-gnu";
-          hash = "sha256-FN37htu/yxnDSbaCeda2JwDSn2O1shdrfale/PPBOHg=";
+          hash = "sha256-3mXd6gGa5LWRYd+g4qoi9kSbYsfmCz4H/P2pSDVteyM=";
         };
         "aarch64-darwin" = {
           name = "aarch64-apple-darwin";
-          hash = "sha256-dZJkKSGJStEGfWzQBi27DQzc6glvL+TZoOy3N/aApFE=";
+          hash = "sha256-FMTDib6VV4F59WKxd9KFcFGiMOazn8n5BoA0JopDeN8=";
         };
       };
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system:
@@ -47,10 +47,10 @@
           target = targets.${system};
           crawlbergBin = pkgs.stdenv.mkDerivation {
             pname = "crawlberg";
-            version = "1.13.5";
+            version = "1.13.6";
 
             src = pkgs.fetchurl {
-              url = "https://github.com/xberg-io/crawlberg/releases/download/v1.13.5/crawlberg-cli-${target.name}.tar.gz";
+              url = "https://github.com/xberg-io/crawlberg/releases/download/v1.13.6/crawlberg-cli-${target.name}.tar.gz";
               inherit (target) hash;
             };
 
@@ -81,7 +81,7 @@
           crawlberg = if pkgs.stdenv.hostPlatform.isLinux then
             pkgs.buildFHSEnv {
               pname = "crawlberg";
-              version = "1.13.5";
+              version = "1.13.6";
               executableName = "crawlberg";
               targetPkgs = _: [ crawlbergBin ];
               runScript = "${crawlbergBin}/bin/crawlberg";
