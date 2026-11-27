@@ -91,14 +91,16 @@
         in {
           default = crawlberg;
           crawlberg = crawlberg;
+          crawlberg-bin = crawlbergBin;
         });
 
       checks = forAllSystems (pkgs: system:
         let
           crawlberg = self.packages.${system}.crawlberg;
+          crawlbergBin = self.packages.${system}.crawlberg-bin;
         in {
           cli-help = pkgs.runCommand "crawlberg-cli-help" {
-            nativeBuildInputs = [ crawlberg ];
+            nativeBuildInputs = [ crawlbergBin ];
           } ''
             crawlberg --help > "$out"
             grep -q "crawlberg" "$out"
